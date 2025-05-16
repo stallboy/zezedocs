@@ -140,7 +140,7 @@ void addItemToBag(long roleid, int itemId) {
 
 ## 分布式架构
 
-![arch](/assets/images/arch.png)
+![arch](../assets/images/arch.png)
 
 上图是Zeze默认的框架结构，具有一定通用性。某些情况下，自己可以搭建全新的架构。
 
