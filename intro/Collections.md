@@ -14,12 +14,14 @@ Collections是Zeze的内建模块。
 ## LinkedMap
 一个容量巨大的Map。一个有顺序的Map，注意，不是排序的Map。
 所有数据操作支持事务。遍历操作是事务外的。
+
 ```
 初始化
 MyApp.LinkedMapModule = new LinkedMap.Module(zeze);
 使用例子
 Var friends = LinkedMapModule.open(“Friends”, BFreind.clsss);
 ```
+
 | 方法           | 说明                 |
 |--------------|--------------------|
 | getRoot      | 得到LinkedMap的根节点    |

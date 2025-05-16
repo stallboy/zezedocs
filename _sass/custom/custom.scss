@@ -1,0 +1,26 @@
+@font-face {
+  font-family: 'FZSSK';
+  src: url('/assets/fonts/FZSSK.TTF') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* 代码块字体（避免中文字体影响代码） */
+code, pre {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+// 全局文本设定
+body {
+  font-family: 'FZSSK', -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.6;                     // 1.6倍行距
+  text-rendering: optimizeLegibility;   // 增强字体渲染
+  hyphens: auto;                        // 自动断词（需浏览器支持）
+  font-size: 1.2rem;
+}
+
+
+
+h1 { font-size: 2rem; }                 // 层级分明
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.5rem; }

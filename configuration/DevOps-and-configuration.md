@@ -177,7 +177,9 @@ Dbh2客户端使用的提交模式。Dbh2LocalCommit为true表示使用嵌入到
 块。
 
 ## DatabaseConf
+
 ### 必要配置
+
 下面三个DatabaseConf参数必须配置。
 * Name = ""
 数据库的名字。为空的表示默认数据库。当配置多个数据库时，其他数据库必须命名，并通
@@ -201,22 +203,46 @@ Dbh2，持久化的。
 * DatabaseUrl = ""
 根据上面的DatabaseType配置数据库的参数。每种数据库详细url配置请参考相应的文档，
 下面给出一些例子。
+
+
+1.Memory
+
 ```
-1.	Memory
 <…DatabaseUrl=""/>
-2.	MySql
-<…DatabaseUrl="jdbc:mysql://localhost:3306/devtest?user=dev&amp;password=devte
-st12345&amp;useSSL=false&amp;serverTimezone=UTC&amp;allowPublicKeyRetrieval
-=true"/>
+```
+
+2. MySql
+
+```
+<…DatabaseUrl="jdbc:mysql://localhost:3306/devtest?
+    user=dev&password=devtest12345&
+    useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"/>
+```
+
 3.	SqlServer
+
+```
 <…DatabaseUrl="Server=(localdb)\MSSQLLocalDB;Integrated Security=true"/>
+```
+
 4.	Tikv
+
+```
 <…DatabaseUrl=" 172.21.15.68:2379"/>
+```
+
 5.	RocksDB
+
+```
 <…DatabaseUrl="RocksDBDir"/>
+```
+
 6.	DynamoDB
 未完成连接实验，TODO
+
 7.	Dbh2
+
+```
 <…DatabaseUrl="dbh2://127.0.0.1:10999/dbh2_unittest"/>
 ```
 
@@ -312,10 +338,14 @@ CacheCapacity="1000"/&gt;，当然配置需要满足性能（命中率），否�
 ### 表的其他配置
 
 除非必要，不建议调整下面的配置。配置例子
+
 ```xml
 <TableConf Name="demo_Module1_tSample" 
-CacheCapacity="1000" CacheInitialCapacity ="0" CacheNewAccessHotThreshold="0"…/>
+           CacheCapacity="1000" 
+           CacheInitialCapacity ="0" 
+           CacheNewAccessHotThreshold="0"/>
 ```
+
 * CacheInitialCapacity = 0
 
 这是TableCache相关的一个配置，用来配置缓存的初始化容量。Zeze这样使用这个配置：
@@ -401,24 +431,24 @@ DatabaseOldMode配置，见下。
 几乎总是有自己名字的配置选项。这个默认选项的用途就不大了，但是也有点用。当程序动
 态构造Service，并且动态构建Connector，Acceptor时，就会用到默认选项，也可以具有
 一定的手工调整配置的能力。
+
 ```xml
 <ServiceConf Name=" "
 	NoDelay="true"
 	SendBuffer="1M"
-	…
 />
 ```
 
 ### 有名字的网络服务配置例子
+
 ```xml
 <ServiceConf Name="Zeze.Services.ServiceManager.Agent"
 	NoDelay="true"
-	SendBuffer="1M"
-	…
->
+	SendBuffer="1M">
 		<Connector HostNameOrAddress="127.0.0.1" Port="5001"/>
 </ServiceConf>
 ```
+
 跟默认网络配置相比，就是指定了Name，上面的例子是配置ServiceManager客户端的网
 络。其中Connector配置了客户端需要连接的服务器ServiceManager的地址和端口。
 
@@ -427,11 +457,12 @@ Connector是ServiceConf的内部节点，用来配置客户端的一个连接。
 护管理一个连接，根据选项会自动在连接断开的时候决定是否重连。下面IsAutoReconnect，
 MaxReconnectDelay的配置都是默认值，一般可以不修改。Connector创建的连接的网络选
 项使用它所在ServiceConf里面的网络配置。
+
 ```xml
 <ServiceConf Name="Zeze.Services.ServiceManager.Agent"
 	NoDelay="true"
-	SendBuffer="1M"
-	…
+	SendBuffer="1M">
+	
     <Connector HostNameOrAddress="127.0.0.1" Port="5001"
         IsAutoReconnect="true"
         MaxReconnectDelay="8000"
@@ -446,6 +477,7 @@ ServiceConf里面的网络配置。注意：由于java版没有实现异步Dns�
 只能是Ip，不能是HostName。为了简化配置，Ip可以设置为@internal或@external。在双
 网卡，其中一个网卡配置了公共互联网地址，一个网卡配置了私有网络地址。@internal会
 自动查找私有网络地址并设置进去，@external会自动使用公共互联网地址。
+
 ```xml
 <ServiceConf Name="TestServer" CompressC2s="1">
 	<Acceptor Ip="127.0.0.1" Port="7777"/>
@@ -453,22 +485,26 @@ ServiceConf里面的网络配置。注意：由于java版没有实现异步Dns�
 ```
 
 ### maxConnections
+
 ```xml
 <ServiceConf Name="TestServer" CompressC2s="1" maxConnections="1024">
 	<Acceptor Ip="127.0.0.1" Port="7777"/>
 </ServiceConf>
 ```
+
 每个Service最大连接限制，默认值是1024，一般情况下都适合。但是对于linkd等网关性
 质服务，一般需要改的更大。注意：由于历史原因，这个选项的名字是小写开头的。
 
 ### SocketOptions
+
 ```xml
 <ServiceConf Name="Zeze.Services.ServiceManager.Agent"
 	NoDelay="true"
-	SendBuffer="1M"
-	…
+	SendBuffer="1M"/>
 ```
+
 所有的SocketOptions都有默认值，当没有设置时，有一些会使用操作系统的网络默认配置。
+
 #### 操作系统网络相关选项
 * NoDelay
 * SendBuffer // 不指定的话由操作系统提供默认值
@@ -564,6 +600,7 @@ Dh密钥交换算法里面Group的配置。强烈不建议修改。
 ## GlobalCacheManagersConf
 为了避免切换raft版时重新配置的麻烦，即使没有使用，这个配置也可以保留在配置文件中。
 通过GlobalCacheManagerHostNameOrAddress进行切换。
+
 ```xml
 <zeze GlobalCacheManagerHostNameOrAddress="GlobalCacheManagersConf"
     GlobalCacheManagerPort="5002">
@@ -572,6 +609,7 @@ Dh密钥交换算法里面Group的配置。强烈不建议修改。
 	</GlobalCacheManagersConf>
 </zeze>
 ```
+
 由于历史原因GlobalCacheManagerHostNameOrAddress的格式比较丰富。当只有一台
 Global服务器时，这里配置Global服务器的主机地址，GlobalCacheManagerPort配置它的
 端口。当存在多台Global服务器时，
@@ -583,11 +621,13 @@ GlobalCacheManagerHostNameOrAddress="ip1:port1;ip2:port2;ip3:port3"。当使用r
 ## ServiceManagerConf
 为了避免切换raft版时重新配置的麻烦，即使没有使用，这个配置也可以保留在配置文件中。
 通过Zeze.ServiceManager配置进行切换。如下：
+
 ```xml
 <zeze ServiceManager="raft">
 	<ServiceManagerConf raftXml="servicemanager.raft.xml"/>
 </zeze>
 ```
+
 上面ServiceManager配置默认为空，表示启用单点版本的ServiceManager服务器，这个服
 务器的ServiceConf的名字是Zeze.Services.ServiceManager.Agent。取值"raft"表示启用
 ServiceManagerConf，其中的raftXml是raft的配置文件名。

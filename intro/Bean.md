@@ -51,7 +51,7 @@ bean类型的兼容性只看字段ID和字段类型，与bean的命名和类型I
 遇到则用默认值取代旧值。
 ## BeautifulVariableId
 关于bean增减variable的建议：按variable.id的顺序从1开始自增地分配和扩展；删除
-variable不要直接删除，可以修改variable.name或注释来表示“临时不再使用”的含义，方便
+variable不要直接删除，可以修改variable.name或注释来表示“临时不再使用"的含义，方便
 保留数据库中已有的数据不丢失，以备之后再恢复使用，也防止增加variable时重用该
 variable.id引发取出旧数据的混乱。如果有彻底全服删库的机会，可以删除不会再用的
 variable，此时也可以顺便重新整理所有的variable.id。
@@ -64,12 +64,13 @@ BeautifulVariableId功能了。使用BeautifulVariableId之后需要重新生成
 ## Version
 Table.Value可以定义一个版本号。当修改发生时自动递增。Table.Value总是一个Bean，这
 个定义方式就放到这里了。声明例子：
+
 ```xml
-<bean name=”BVersionSample” version=”VersionVarName”>
-	<variable id=”1” name=” VersionVarName” type=”long”/>
-	…
+<bean name="BVersionSample" version="VersionVarName">
+	<variable id="1" name=" VersionVarName" type="long"/>
 </bean>
 ```
+
 1.	VersionVarName 可以自己命名，然后在Bean的属性version中声明哪一个变量用
 来存储版本号。
 2.	Type 必须是long。

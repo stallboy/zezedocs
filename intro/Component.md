@@ -50,19 +50,19 @@ RedoQueue完成的功能。RedoQueue提供了一个可自定义任务内容的�
       的原因。
 * RedoQueue主要接口
 ```java
-void add(int taskType, Zeze.Serialize.Serializable taskParam)
-      taskType, taskParam完全由应用自己定义。
+void add(int taskType, Zeze.Serialize.Serializable taskParam){}
+      // taskType, taskParam完全由应用自己定义。
 ```
 * RedoQueueServer主要接口
 ```java
-void register(String queue, int type, Predicate<Binary> task)
-      queue 队列名字，一个RedoQueueServer支持多个Client。
+void register(String queue, int type, Predicate<Binary> task){}
+      // queue 队列名字，一个RedoQueueServer支持多个Client。
 ```
 
 * RedoQueueServer初始化
 ```java
-      MyApp.RedoQueueServer = new RedoQueueServer(zeze);
-      MyApp.RedoQueueServer.Start();
+MyApp.RedoQueueServer = new RedoQueueServer(zeze);
+MyApp.RedoQueueServer.Start();
 ```
 
 ## Timer

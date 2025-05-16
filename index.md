@@ -15,7 +15,24 @@ Zeze是一个基于一致性缓存的分布式事务并发应用框架。Zeze也
 但所有人都去一个窗口排队，这样的系统显然不能很好的运行。分布式是数据在多台
 机器间可以安全的共享，并发是对应用的要求-即应用自己的需求需要能并发起来。
 
-“这个世界是天然并发的。”
+> 这个世界是天然并发的
+
+## Git
+
+- [gitee zeze](https://gitee.com/e2wugui/zeze).
+- [github zeze](https://github.com/e2wugui/zeze).
+- [原始文档](https://gitee.com/e2wugui/zeze/blob/master/doc/index.md)
+
+## Maven
+
+```xml
+<!-- https://mvnrepository.com/artifact/com.zezeno/zeze-java -->
+<dependency>
+    <groupId>com.zezeno</groupId>
+    <artifactId>zeze-java</artifactId>
+    <version>1.5.5</version>
+</dependency>
+```
 
 ## 特性
 

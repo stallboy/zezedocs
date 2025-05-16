@@ -10,6 +10,10 @@ nav_order: 2
 
 # Quick Start
 
+{: .highlight}
+> 建议从这个工程入手:[zezeboot](https://gitee.com/dwing/zezeboot)
+
+
 进程本身直接提供网络服务，这里的例子快速展现zeze的核心能力。这里没有考虑完整的
 网络框架支持，稍后讲到的Arch是zeze的网络框架，包含网关和主逻辑服务的连接以及架
 构。Zeze最核心的能力是事务的支持，只需要三个步骤就能开始使用zeze事务。
@@ -21,6 +25,7 @@ nav_order: 2
 下面稍微详细的用例子介绍三个步骤。
 
 * 定义数据结构
+
 ```xml
 <solution name="QuickStart" ModuleIdAllowRanges="1-100,101">
    <module name="Role" id="1">
@@ -47,6 +52,7 @@ nav_order: 2
    </project>
 </solution>
 ```
+
 * 生成代码
 
 把上面的xml保存为solution.xml，切换到文件所在目录，执行Gen.exe solution.xml。在当
@@ -134,7 +140,7 @@ void addItemToBag(long roleid, int itemId) {
 
 ## 分布式架构
 
-![arch](../images/arch.png)
+![arch](/assets/images/arch.png)
 
 上图是Zeze默认的框架结构，具有一定通用性。某些情况下，自己可以搭建全新的架构。
 
@@ -247,6 +253,7 @@ public final class ModuleLogin extends AbstractModule {
 ## 创建Arch.Linkd（Java）
 
 * Solution.linkd.xml
+
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 
@@ -277,6 +284,7 @@ public final class ModuleLogin extends AbstractModule {
 
 </solution>
 ```
+
 * App.java::Start
 
 Solution.linkd.xml生成代码时，会生成linkd/src/Zezex/App.java，其中Start方法是程序初

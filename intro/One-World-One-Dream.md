@@ -85,21 +85,21 @@ public static class GroupId extends Zeze.Transaction.Bean {
 
     @Override
     public void decode(ByteBuffer bb) {
-　　	    // 所有的群操作的参数的第一个变量必须时Group，
-    　　	// 并且variable.id必须等于1.
-    　　 // 这个类的目的是优化。
-    　　 // 因为Lindk只需要得到Group即可，不需要解析出完整的参数信息。
-    　　 // 这个decode的实现必须符合Bean的编码规范。
-    　　 // 如果不在乎decode完整协议的性能开销，也可以不需要这个类。
-    　　 // 直接decode出完整协议即可。
+        // 所有的群操作的参数的第一个变量必须时Group，
+        // 并且variable.id必须等于1.
+        // 这个类的目的是优化。
+        // 因为Lindk只需要得到Group即可，不需要解析出完整的参数信息。
+        // 这个decode的实现必须符合Bean的编码规范。
+        // 如果不在乎decode完整协议的性能开销，也可以不需要这个类。
+        // 直接decode出完整协议即可。
         int _t_ = bb.ReadByte();
         int _i_ = bb.ReadTagSize(_t_);
         if (_i_ == 1) {
-        Group = bb.ReadString(_t_);
-        _i_ += bb.ReadTagSize(_t_ = bb.ReadByte());
+            Group = bb.ReadString(_t_);
+            _i_ += bb.ReadTagSize(_t_ = bb.ReadByte());
         }
         // 由于Group,DepartmentId默认值时，不会Encode任何东西，这里就不做是否
-        存在值的验证了。
+        // 存在值的验证了。
     }
 
     @Override

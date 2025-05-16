@@ -26,7 +26,7 @@ public interface ChangeListener {
 ```
 ## 例子
 ```java
-public static class ItemsChangeListener implelents ChangeListener {
+public static class ItemsChangeListener implements ChangeListener {
     void OnChanged(Object key, Changes.Record r) {
         switch (r.getState()) {
         case Changes.Record.Put:
