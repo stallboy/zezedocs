@@ -2,6 +2,7 @@
 layout: page
 title: 架构
 parent: intro
+nav_order: 5
 ---
 
 * TOC

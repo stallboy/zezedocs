@@ -1,7 +1,8 @@
 ---
 layout: page
 title: 建议
-parent: 杂项
+parent: intro
+nav_order: 8
 ---
 
 * TOC

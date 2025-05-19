@@ -2,6 +2,7 @@
 layout: page
 title: Zeze漫谈
 parent: intro
+nav_order: 1
 ---
 
 * TOC
@@ -36,7 +37,7 @@ Record最早只是Cache中的一个数据，后来所有相关功能需要的时
 
 #### a) 乐观锁和缓存
 
-- 下面变量定义按源码顺序排列，没有分类。
+下面变量定义按源码顺序排列，没有分类。
 
 ```
 ReentrantLock fairLock;                       // 记录锁。
@@ -48,24 +49,24 @@ volatile RelativeRecordSet relativeRecordSet; // 记录所属的关联记录集�
 volatile int state;                           // 记录状态，也就是是否获得锁的标志。
 ```
 
-	- SoftReference 二级缓存
+SoftReference 二级缓存
 
-	记录缓存最早的版本都保存在内存中的。通过每个表的缓存容量配置（CacheCapacity）控制内存的使用。
-	由于表的记录大小不一，使用频率不一，通过配置控制内存使用是一个比较繁重的工作。所以，引入基于
-	软引用的二级缓存，内存中用SoftReference<Bean>，同时在本地硬盘保存一份。当软引用失效时从本地硬盘装载。
-	引入软引用以后，JVM会最大化利用内存，把部分记录回收掉。这样每个记录在内存中只记录一个引用，
-	没有数据，缓存容量就可以设置的比较大，内存也不容易受到记录大小的影响。带来的好处是，I) 使得本地
-	缓存更大，有利于提高缓存命中率；II) 简化配置，即统一把所有表的容量都设置成一样的，并且比较大的数值。
+记录缓存最早的版本都保存在内存中的。通过每个表的缓存容量配置（CacheCapacity）控制内存的使用。
+由于表的记录大小不一，使用频率不一，通过配置控制内存使用是一个比较繁重的工作。所以，引入基于
+软引用的二级缓存，内存中用SoftReference<Bean>，同时在本地硬盘保存一份。当软引用失效时从本地硬盘装载。
+引入软引用以后，JVM会最大化利用内存，把部分记录回收掉。这样每个记录在内存中只记录一个引用，
+没有数据，缓存容量就可以设置的比较大，内存也不容易受到记录大小的影响。带来的好处是，I) 使得本地
+缓存更大，有利于提高缓存命中率；II) 简化配置，即统一把所有表的容量都设置成一样的，并且比较大的数值。
 
-	乐观锁和关联记录集合相关的后面再说。
+乐观锁和关联记录集合相关的后面再说。
 
 #### b) 新鲜的优化
 
 ```
 boolean fresh; 
 long acquireTime;
-用来表示记录是否新鲜的。刚刚获得控制权的记录，由于乐观锁，有可能没有真正成功执行完事务又会被其他服务器抢走，
-造成资源浪费，甚至一直互相抢夺造成事务失败，虽然可能性比较低。
+// 用来表示记录是否新鲜的。刚刚获得控制权的记录，由于乐观锁，有可能没有真正成功执行完事务又会被其他服务器抢走，
+// 造成资源浪费，甚至一直互相抢夺造成事务失败，虽然可能性比较低。
 
 final boolean isFresh() {
 	// 这个标志在申请锁时会被发送给Global，并影响Global对锁的分配。
@@ -91,18 +92,20 @@ final void setFreshAcquire() {
 }
 ```
 
-##### c) Checkpoint的优化
+#### c) Checkpoint的优化
 ```
 	Database.Transaction databaseTransactionTmp;
 	Database.Transaction databaseTransactionOldTmp;
+```
 
-	Database.Transaction 是Zeze的后端数据库，如MySql的事务。
+- Database.Transaction 
+    是Zeze的后端数据库，如MySql的事务。
 	Zeze支持多个后端数据库，并把他们看成一个整体来使用。
 	Checkpoint时，会创建每个后端数据库的事务用来提交数据。
 	Checkpoint是按记录操作的，把后端数据库的事务保存到记录上是一种优化，
 	这样保存记录数据时，不用一个个去查找后端数据库的事务了。
 
-	databaseTransactionOldTmp
+- databaseTransactionOldTmp
 	Zeze支持的一个策略：可以把一个很大的后端数据库备份放到一边变成"只读"，
 	Zeze会在执行中，把数据从备份库中根据实际使用装载到当前的工作数据库中。
 	对于某些游戏不断合服，造成后端数据库很大，但是活跃数据又不大时，这个
@@ -110,64 +113,63 @@ final void setFreshAcquire() {
 	使用这个策略，主要是修改配置，由于这个功能比较奇怪，这里不详细说明配置了。
 	实际上一下子也说不出来，需要去看代码。"只读"，当记录从工作记录中删除时，
 	需要删除备份库，否则下一次查询又装载一次，逻辑就不对了。
-```
-
 
 ### 2. class Record1<K, V> extends Record
 
-	这个类是上面Record的子类，带了类型，以及系列化相关的方法。
+这个类是上面Record的子类，带了类型，以及系列化相关的方法。
 
-```
-	a) 基本
+
+- a) 基本
 	TableX<K, V> table;       // 记录所属的表。
 	final K key;              // 记录的Key。
 
-	b) 系列化快照
+- b) 系列化快照
 	ByteBuffer snapshotKey;   // 记录的Key系列化后的临时引用。
 	ByteBuffer snapshotValue; // 记录的Value系列化后的临时引用。
 
-	c) 安全清除Dirty
+- c) 安全清除Dirty
 	long savedTimestampForCheckpointPeriod; // 用来保存Checkpoint关键点时的时戳。
 	//      记录的修改访问操作是和Checkpoint流程部分流程并发的，存在下面的情况。
 	//      当记录建立快照后，又会被修改时，Checkpoint不能把记录设置成不脏。
 	//      Checkpoint仅在保存的时戳和快照时的时戳一样时才修改记录的脏标志。
 
-	d) 删除不存在的记录优化
-	boolean existInBackDatabase;                    // 记录是否在后端数据库中存在。
-	boolean existInBackDatabaseSavedForFlushRemove; // 保存上面存在标志，用来提高并发（避免锁）
-	//      记录是否在后端数据库中存在，是为了优化记录不存在时，避免把删除操作发送给后端数据库。
-	//      一般后端数据库删除不存在的记录的操作代价和删除存在是一样的。这种情况的案例：
-	//      如果应用创建了很多临时记录，但是还没有提交到后端数据库前就删除了。如果没有这个标志，
-	//      Zeze会这种情况下的把删除操作交给后端数据库，造成性能浪费。
+  - d) 删除不存在的记录优化
+    boolean existInBackDatabase;                    // 记录是否在后端数据库中存在。
+    boolean existInBackDatabaseSavedForFlushRemove; // 保存上面存在标志，用来提高并发（避免锁）
+    //      记录是否在后端数据库中存在，是为了优化记录不存在时，避免把删除操作发送给后端数据库。
+    //      一般后端数据库删除不存在的记录的操作代价和删除存在是一样的。这种情况的案例：
+    //      如果应用创建了很多临时记录，但是还没有提交到后端数据库前就删除了。如果没有这个标志，
+    //      Zeze会这种情况下的把删除操作交给后端数据库，造成性能浪费。
 
-	e) ConcurrentLruLike 的辅助变量
-	volatile ConcurrentHashMap<K, Record1<K, V>> lruNode;
+  - e) ConcurrentLruLike 的辅助变量
 
-	Zeze.Util.ConcurrentLruLike 是一个通用的包装。
-	Zeze.Transaction.TableCache 也类似ConcurrentLruLike，但是专用的，可以省一点内存和提高一点性能。
+    volatile ConcurrentHashMap<K, Record1<K, V>> lruNode;
 
-	java 默认的lru并发性能不够好，所以写了这个ConcurrentLruLike，它实际的并发特性来源自ConcurrentHashMap。
-	简单说明一下：
-	ConcurrentHashMap<K, Record1<K, V>> dataMap;                         // Lru里面所有的记录映射。
-	ConcurrentLinkedQueue<ConcurrentHashMap<K, Record1<K, V>>> lruQueue; // 记录活跃时所属的映射的队列，按时间排序。
-	ConcurrentHashMap<K, Record1<K, V>> lruHot;                          // 热点映射，肯定不会被回收。
-	java的lru用LinkedList结构记录了全访问顺序队列，这造成它的并发性能不高。
-	ConcurrentLruLike基于ConcurrentHashMap，提供修改的并发访问，访问顺序队列变得不精确，按lruQueue的精度推进。
-```
+    Zeze.Util.ConcurrentLruLike 是一个通用的包装。
+    Zeze.Transaction.TableCache 也类似ConcurrentLruLike，但是专用的，可以省一点内存和提高一点性能。
+
+    java 默认的lru并发性能不够好，所以写了这个ConcurrentLruLike，它实际的并发特性来源自ConcurrentHashMap。
+    简单说明一下：
+    ConcurrentHashMap<K, Record1<K, V>> dataMap;                         // Lru里面所有的记录映射。
+    ConcurrentLinkedQueue<ConcurrentHashMap<K, Record1<K, V>>> lruQueue; // 记录活跃时所属的映射的队列，按时间排序。
+    ConcurrentHashMap<K, Record1<K, V>> lruHot;                          // 热点映射，肯定不会被回收。
+    java的lru用LinkedList结构记录了全访问顺序队列，这造成它的并发性能不高。
+    ConcurrentLruLike基于ConcurrentHashMap，提供修改的并发访问，访问顺序队列变得不精确，按lruQueue的精度推进。
+
 
 ## 乐观锁详解
-	算法要点
-	1．排序加锁，实际上所访问的记录存储在SortedDictionary中。
-	2．加锁后检查冲突，即数据是否改变。冲突则重做事务。
-	3．冲突重做时保持已经得到的锁，这样在冲突非常严重时，第二次执行事务一般都能成功，
-	   而不会陷入一直冲突，事务永远没法完成的情况。
-	4．重做保持锁，但重做过程中所访问的记录可能发生变化，所以重做仍然需要再次执行lockAndCheck逻辑，
-	   并且处理所访问的记录发生变更的问题。
-	5. 逻辑处理返回错误码或者异常时也需要检查lockAndCheck，因为乐观锁在实际处理逻辑时没有加锁，
-	   可能存在并发原因导致本来不应该发生逻辑错误，此时的仍然需要加锁并完成冲突检查，如果冲突了，
-	   也需要重做。
 
-	上代码。
+乐观锁详解:
+
+1. 排序加锁，实际上所访问的记录存储在SortedDictionary中。
+2. 加锁后检查冲突，即数据是否改变。冲突则重做事务。
+3. 冲突重做时保持已经得到的锁，这样在冲突非常严重时，第二次执行事务一般都能成功， 
+而不会陷入一直冲突，事务永远没法完成的情况。 
+4. 重做保持锁，但重做过程中所访问的记录可能发生变化，所以重做仍然需要再次执行lockAndCheck逻辑，
+并且处理所访问的记录发生变更的问题。
+5. 逻辑处理返回错误码或者异常时也需要检查lockAndCheck，因为乐观锁在实际处理逻辑时没有加锁， 
+可能存在并发原因导致本来不应该发生逻辑错误，此时的仍然需要加锁并完成冲突检查，如果冲突了，
+也需要重做。
 
 ```java
 public long perform(Procedure procedure) {
@@ -498,133 +500,134 @@ private static CheckResult _check_(boolean writeLock, RecordAccessed e) {
 
 ## 单点的Global
 
-	1. 介绍
-	多台服务器共享后台数据库。每台服务器拥有自己的缓存。一致性缓存就是维护多台服务器之间缓存的一致性。
-	zeze一致性缓存和CPU-Cache-Memory的结构很像。所以参考了CPU的MESI协议自己实现了一个锁分配机制。
-	这个一致性缓存思路是非常暴力的，核心出发点就是Global是全能的，知道所有东西。所以算法也非常直接简单。
-	使用了类似MESI的状态名，记录分成读写不可用三种状态。不可用表示记录本地还没有权限，读状态允许同时存在于
-	多台服务器缓存中，写状态只允许在一台服务器中。在一致性缓存之上，每一台服务器的事务就能像自己独占所有
-	数据一样，完成本地事务即可。这就是基于一致性缓存的分布式事务。
+1. 介绍
+多台服务器共享后台数据库。每台服务器拥有自己的缓存。一致性缓存就是维护多台服务器之间缓存的一致性。
+zeze一致性缓存和CPU-Cache-Memory的结构很像。所以参考了CPU的MESI协议自己实现了一个锁分配机制。
+这个一致性缓存思路是非常暴力的，核心出发点就是Global是全能的，知道所有东西。所以算法也非常直接简单。
+使用了类似MESI的状态名，记录分成读写不可用三种状态。不可用表示记录本地还没有权限，读状态允许同时存在于
+多台服务器缓存中，写状态只允许在一台服务器中。在一致性缓存之上，每一台服务器的事务就能像自己独占所有
+数据一样，完成本地事务即可。这就是基于一致性缓存的分布式事务。
 
-	2. 基本流程
-	记录的三个锁状态：Modify,Share,Invalid。
-	当主逻辑服务器需要访问或修改数据时，向全局锁管理服务器（下面用Global称呼）申请Modify或Share锁。
-	Global知道所有记录的锁的分布状态。它根据申请的锁，向现拥有者发送相应的降级请求；拥有者释放锁，
-	并把数据刷新到后端服务器后，才给Global返回结果；Global登记申请者的锁状态，给申请者返回结果。
+2. 基本流程
+记录的三个锁状态：Modify,Share,Invalid。
+当主逻辑服务器需要访问或修改数据时，向全局锁管理服务器（下面用Global称呼）申请Modify或Share锁。
+Global知道所有记录的锁的分布状态。它根据申请的锁，向现拥有者发送相应的降级请求；拥有者释放锁，
+并把数据刷新到后端服务器后，才给Global返回结果；Global登记申请者的锁状态，给申请者返回结果。
 
-	3. 并发原则
-	对于同一个记录，所有的申请请求是排队处理的，一个时候仅处理一个请求。根据请求是读或写，按读写共享
-	互斥规则完成锁的分配管理。
-	对于不同的记录，申请执行是并发的。互相不会影响。
+3. 并发原则
+对于同一个记录，所有的申请请求是排队处理的，一个时候仅处理一个请求。根据请求是读或写，按读写共享
+互斥规则完成锁的分配管理。
+对于不同的记录，申请执行是并发的。互相不会影响。
 
-	4. 死锁
-	由于每个服务器都采取了排序加锁（乐观锁），所以多个记录间已经不会死锁了。
-	但Global对同一个记录的访问，即使只有一个记录也是有可能死锁的。比如：
-	ServerA 拥有记录1的读锁，然后去申请写锁。
-	ServerB 也拥有记录1的读锁，然后去申请写锁。
-	当Global在处理ServerA的请求时需要通知ServerB降级，但ServerB此时也在等待写锁申请，
-	此时ServerB等待记录1的Global写锁时，已经在本进程占有了记录1的锁，降级请求得不到执行。
-	如果没有一个检测机制打破这个循环，就死锁了。
-	这个叫一个记录的死锁。
+4. 死锁
+由于每个服务器都采取了排序加锁（乐观锁），所以多个记录间已经不会死锁了。
+但Global对同一个记录的访问，即使只有一个记录也是有可能死锁的。比如：
+ServerA 拥有记录1的读锁，然后去申请写锁。
+ServerB 也拥有记录1的读锁，然后去申请写锁。
+当Global在处理ServerA的请求时需要通知ServerB降级，但ServerB此时也在等待写锁申请，
+此时ServerB等待记录1的Global写锁时，已经在本进程占有了记录1的锁，降级请求得不到执行。
+如果没有一个检测机制打破这个循环，就死锁了。
+这个叫一个记录的死锁。
 
-	5. 并发实现伪码
+5. 并发实现伪码
+```java
+int acquireShare(Acquire rpc) {
+    while (true) {
+        // 查询得到记录。
+        CacheState cs = global.computeIfAbsent(rpc.Argument.globalKey, CacheState::new);
 
-	```java
-	int acquireShare(Acquire rpc) {
-		while (true) {
-			// 查询得到记录。
-			CacheState cs = global.computeIfAbsent(rpc.Argument.globalKey, CacheState::new);
+        // 锁住这个记录。
+        synchronized (cs) {
+            // 记录状态是被删除的，继续循环，获取新的记录。
+            // 这是因为computeIfAbsent和synchronized (cs)之间存在时间窗口，有可能在这个窗口记录刚好被删除了。
+            // 这里继续循环，看作第一次申请这个记录的锁即可。
+            // 这里的关键是，所有的同一个globalKey的请求，都必须访问同一个CacheState。
+            if (cs.acquireStatePending == StateRemoved)
+                continue;
 
-			// 锁住这个记录。
-			synchronized (cs) {
-				// 记录状态是被删除的，继续循环，获取新的记录。
-				// 这是因为computeIfAbsent和synchronized (cs)之间存在时间窗口，有可能在这个窗口记录刚好被删除了。
-				// 这里继续循环，看作第一次申请这个记录的锁即可。
-				// 这里的关键是，所有的同一个globalKey的请求，都必须访问同一个CacheState。
-				if (cs.acquireStatePending == StateRemoved)
-					continue;
+            while (cs.acquireStatePending != StateInvalid && cs.acquireStatePending != StateRemoved) {
+                if (检测到死锁()) {
+                    // 死锁，发送申请失败结果
+                    rpc.Result.state = StateInvalid;
+                    rpc.SendResultCode(AcquireShareDeadLockFound);
+                    return 0;
+                }
+                cs.wait(); //await 等通知！这个CacheState有进行中的请求。等待完成。这里就是并发排队。
+                // 为什么这里的并发访问不能简单的通过synchronized (cs)就是先互斥和等待，而要用cs.wait()呢？
+                // 这是为了上面的死锁检测，如果仅仅通过锁互斥，那么等待的请求进不来，而进行总的请求又在等待
+                // 正在申请的，就无法完成死锁检查，那么死锁发生的时候，就没法解锁了。使用cs.wait()，后面
+                // 进行中的请求在等待操作的时候，也会进行cs.wait()，这样就能开门放狗，把当前所有的请求者都
+                // 放进来进行死锁检测，最终死锁才可能被打断。
+            }
+            if (cs.acquireStatePending == StateRemoved)
+                continue; // concurrent release，同上一个StateRemoved判断。
 
-				while (cs.acquireStatePending != StateInvalid && cs.acquireStatePending != StateRemoved) {
-					if (检测到死锁()) {
-						// 死锁，发送申请失败结果
-						rpc.Result.state = StateInvalid;
-						rpc.SendResultCode(AcquireShareDeadLockFound);
-						return 0;
-					}
-					cs.wait(); //await 等通知！这个CacheState有进行中的请求。等待完成。这里就是并发排队。
-					// 为什么这里的并发访问不能简单的通过synchronized (cs)就是先互斥和等待，而要用cs.wait()呢？
-					// 这是为了上面的死锁检测，如果仅仅通过锁互斥，那么等待的请求进不来，而进行总的请求又在等待
-					// 正在申请的，就无法完成死锁检查，那么死锁发生的时候，就没法解锁了。使用cs.wait()，后面
-					// 进行中的请求在等待操作的时候，也会进行cs.wait()，这样就能开门放狗，把当前所有的请求者都
-					// 放进来进行死锁检测，最终死锁才可能被打断。
-				}
-				if (cs.acquireStatePending == StateRemoved)
-					continue; // concurrent release，同上一个StateRemoved判断。
+            // 获得执行权限，首先设置申请状态。
+            cs.acquireStatePending = StateShare;
 
-				// 获得执行权限，首先设置申请状态。
-				cs.acquireStatePending = StateShare;
+            if (cs.modify != null) {
+                // 如果当前cs的是写状态，需要对当前锁拥有者进行降级处理。
+                cs.modify.reduce(() -> {
+                    // 对当前写拥有者发起异步降级操作，操作成功回调这个lambda。
+                    // ...
+                    // 得到结果，发送notifyAll。
+                    synchronized (cs) {
+                        cs.notifyAll(); //notify 通知所有排队的申请者进来 (line a)
+                    }
+                });
 
-				if (cs.modify != null) {
-					// 如果当前cs的是写状态，需要对当前锁拥有者进行降级处理。
-					cs.modify.reduce(() -> {
-						// 对当前写拥有者发起异步降级操作，操作成功回调这个lambda。
-						...
-						// 得到结果，发送notifyAll。
-						synchronized (cs) {
-							cs.notifyAll(); //notify 通知所有排队的申请者进来 (line a)
-						}
-					});
+                cs.wait(); // 等待reduce结果，
+                // 这里进入wait后，如果存在排队的申请者，就可以获得锁，进到死锁检测循环哪里。
+                // 当上面的(line a)行得到降级结果发起通知时，所有的等待的都会唤醒，包括这里。
+                // 没有获得执行权的会再次等待在死锁检测循环哪个cs.wait()哪里。
+                // 这个唤醒以后会继续完成自己的申请流程。
 
-					cs.wait(); // 等待reduce结果，
-					// 这里进入wait后，如果存在排队的申请者，就可以获得锁，进到死锁检测循环哪里。
-					// 当上面的(line a)行得到降级结果发起通知时，所有的等待的都会唤醒，包括这里。
-					// 没有获得执行权的会再次等待在死锁检测循环哪个cs.wait()哪里。
-					// 这个唤醒以后会继续完成自己的申请流程。
+                // 处理锁分配相关状态修改；
+                sender.acquired.put(gKey, StateShare);
+                cs.modify = null;
+                cs.share.add(sender);
 
-					// 处理锁分配相关状态修改；
-					sender.acquired.put(gKey, StateShare);
-					cs.modify = null;
-					cs.share.add(sender);
+                // 释放执行状态；
+                cs.acquireStatePending = StateInvalid;
+                cs.notifyAll(); //notify 通知所有排队的申请者进来。
 
-					// 释放执行状态；
-					cs.acquireStatePending = StateInvalid;
-					cs.notifyAll(); //notify 通知所有排队的申请者进来。
+                // 发送结果；
+                rpc.SendResultCode(0);
+                return 0;
+            }
 
-					// 发送结果；
-					rpc.SendResultCode(0);
-					return 0;
-				}
+            // 当前拥有者也是拥有读锁，允许共享读取，直接顺序完成下面操作即可。
 
-				// 当前拥有者也是拥有读锁，允许共享读取，直接顺序完成下面操作即可。
+            // 处理锁分配相关状态修改；
+            sender.acquired.put(gKey, StateShare);
+            cs.share.add(sender);
 
-				// 处理锁分配相关状态修改；
-				sender.acquired.put(gKey, StateShare);
-				cs.share.add(sender);
+            // 释放执行状态；
+            cs.acquireStatePending = StateInvalid;
+            cs.notifyAll(); //notify 通知所有排队的申请者进来。
 
-				// 释放执行状态；
-				cs.acquireStatePending = StateInvalid;
-				cs.notifyAll(); //notify 通知所有排队的申请者进来。
+            // 发送结果；
+            rpc.SendResultCode(0);
+            return 0;
+        }
+    }
+}
+```
 
-				// 发送结果；
-				rpc.SendResultCode(0);
-				return 0;
-			}
-		}
-		```
+为什么是 cs.notifyAll() ?
 
-		为什么是 cs.notifyAll() ?
-		因为死锁检测要求所有等待的申请者都轮流检查一遍，如果仅仅放一个进来，那么如果放进来这个会发生死锁，
-		而被依赖等待的申请者又在排队，那么死锁检测就会失败。所以每次都需要全部唤醒。
+因为死锁检测要求所有等待的申请者都轮流检查一遍，如果仅仅放一个进来，那么如果放进来这个会发生死锁，
+而被依赖等待的申请者又在排队，那么死锁检测就会失败。所以每次都需要全部唤醒。
 
-	5. Global单点问题的解决方案
-	Global从结构和算法上是单点的。系统规模很大的时候，单个进程性能会有上限。这个问题的解决方案运行多个Global。
-	GlobalIndex = hash(GlobalTableKey) % GlobalInstanceCount; 把记录的请求分不到多个Global实例中，根据上面第3点的
-	并发规则，这样划分请求是正确的，并且可以把负载分不开。
+6. Global单点问题的解决方案
+Global从结构和算法上是单点的。系统规模很大的时候，单个进程性能会有上限。这个问题的解决方案运行多个Global。
+GlobalIndex = hash(GlobalTableKey) % GlobalInstanceCount; 把记录的请求分不到多个Global实例中，根据上面第3点的
+并发规则，这样划分请求是正确的，并且可以把负载分不开。
 
-	6. Global单点可靠性的解决方案
-	Global是单点的，如果出现进程或者机器异常，会导致系统不可用。这个问题的解决方案是引入Raft算法。对于每个Global实例，
-	都有多个Raft备份，只要Raft系统中的健康节点超过Raft节点数/2个，系统就能持续提供服务。
-	Raft系统的问题是性能会下降很多。具体应用需要根据自己的需求，决定是否采用Global Raft版本。
+7. Global单点可靠性的解决方案
+Global是单点的，如果出现进程或者机器异常，会导致系统不可用。这个问题的解决方案是引入Raft算法。对于每个Global实例，
+都有多个Raft备份，只要Raft系统中的健康节点超过Raft节点数/2个，系统就能持续提供服务。
+Raft系统的问题是性能会下降很多。具体应用需要根据自己的需求，决定是否采用Global Raft版本。
 
 ## 关联记录集合
 
@@ -672,18 +675,18 @@ private static CheckResult _check_(boolean writeLock, RecordAccessed e) {
 	}
 
 ## Listener
+订阅数据变更。
 
-	订阅数据变更。
+实现历史:
 
-	实现历史
-	1. Xdb时代，在脏记录通告的流程中同时收集变更信息，造成Listener的实现代码和核心流程耦合起来，非常不好理解。
-	2. Zeze的Listener第二版，采取完全独立的算法和规则，跟正常的逻辑分开，变得更清晰了。而且效率不差。
-	3. Zeze的Lisnter当前版，算法和规则还是独立的，但是实现被分散到不同的修改日志类。这个版本实际上没有第二版清晰。
-	   但实现了以后，带来一个通用的增量同步数据的能力。这个版本一开始是为RocksRaft写的，RocksRaft需要增量同步数据的能力。
-	   后来觉得这个能力挺不错的，就把Zeze的Listener也改成这个方式了。
+1. Xdb时代，在脏记录通告的流程中同时收集变更信息，造成Listener的实现代码和核心流程耦合起来，非常不好理解。
+2. Zeze的Listener第二版，采取完全独立的算法和规则，跟正常的逻辑分开，变得更清晰了。而且效率不差。
+3. Zeze的Lisnter当前版，算法和规则还是独立的，但是实现被分散到不同的修改日志类。这个版本实际上没有第二版清晰。
+   但实现了以后，带来一个通用的增量同步数据的能力。这个版本一开始是为RocksRaft写的，RocksRaft需要增量同步数据的能力。
+   后来觉得这个能力挺不错的，就把Zeze的Listener也改成这个方式了。
 
 
 ## RocksDb 误打误撞
 
-	接入Java RocksDb时，时间紧迫，不熟悉包装，沿用了c#的FamilyColumn的机制来在一个Db内实现多张表。
-	带来的好处是整个应用一个RocksDb实例，使用Batch，没有使用事务。作为不需要扩展的系统，凑合了。
+接入Java RocksDb时，时间紧迫，不熟悉包装，沿用了c#的FamilyColumn的机制来在一个Db内实现多张表。
+带来的好处是整个应用一个RocksDb实例，使用Batch，没有使用事务。作为不需要扩展的系统，凑合了。

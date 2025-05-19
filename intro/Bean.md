@@ -2,6 +2,7 @@
 layout: page
 title: Bean
 parent: intro
+nav_order: 12
 ---
 
 * TOC

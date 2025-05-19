@@ -2,6 +2,7 @@
 layout: page
 title: 发布和热更
 parent: intro
+nav_order: 33
 ---
 
 * TOC
@@ -51,9 +52,9 @@ zeze等。模块内定义的类如果需要公开也必须接口化。Bean也是
 口时，可以按下面方式保存一个上下文，避免每次都需要查询。
 ```java
 IModuleSome getSomeService() {
-　　if (this.moduleSome == null）
-　　this.moduleSome = HotManager.get(“MySol.ModuleSome”, IModuleSome.class);
-　　return moduleSome.getService();
+    if (this.moduleSome == null)
+        this.moduleSome = HotManager.get("MySol.ModuleSome", IModuleSome.class);
+    return moduleSome.getService();
 }
 ```
 
@@ -89,25 +90,25 @@ extends IModuleSome。旧版接口一旦发布就不能再修改。这点很重�
 ```java
 private boolean isHotUpgrading() {
     var hotManager = App.Zeze.getHotManager();
-　　 if (null == hotManager)
-　　 return false;
+    if (null == hotManager)
+        return false;
     return hotManager.isUpgrading();
 }
 
 void start() {
     Zeze.newProcedure(() -> {
-    If (!isHotUpgrading())
-        timerInherit = Zeze.getTimer().schedule(…); // 第一次启动注册。
+        if (!isHotUpgrading())
+            timerInherit = Zeze.getTimer().schedule(…); // 第一次启动注册。
         return 0;
-　　}, “register timer”).call();
+        }, "register timer").call();
 }
 
 void stop() {
     Zeze.newProcedure(() -> {
-    If (!isHotUpgrading())
-        Zeze.getTimer().cancel(timerInherit); // 程序退出，不是热更中。
+        if (!isHotUpgrading())
+            Zeze.getTimer().cancel(timerInherit); // 程序退出，不是热更中。
         Return 0;
-    }, “unregister timer”).call();
+    }, "unregister timer").call();
 }
 
 void upgrade(HotService old) {
@@ -159,31 +160,37 @@ Redirect接口方法直接公开到接口中，参数结果部分在解决Bean�
 
 ### Zeze服务限制
 启用了模块热更新支持以后，Zeze服务需要一定限制。
-```
-A)	只能由应用的非热更代码调用，Zeze会阻止违规调用。
-	Zeze.Component.TimerAccount & Zeze.Component.TimerRole
-　　scheduleOnline(… TimerHandle handle …) 
-　　scheduleOnlineNamed(… TimerHandle handle …)
-　　所有以”TimerHandle handle”形式提供回调的在线定时器都会进行限制。
-	Zeze.Util.EventDispatcher，用于Zeze.Game.Online & Zeze.Arch.Online
-add(mode, handle) 调用者必须来自非热更模块。
-B)	热更新模块必须使用接口。
-	Zeze.Component.TimerAccount & Zeze.Component.TimerRole
-scheduleOnlineHot(… Class<? extends TimerHandle> handleClass …)
-scheduleOnlineNamedHot(… Class<? extends TimerHandle> handleClass …)
-	Zeze.Util.EventDispatcher，用于Zeze.Game.Online & Zeze.Arch.Online
-addHot(mode, handleClass) 热更模块必须使用这个接口注册事件。
-```
+
+1. 只能由应用的非热更代码调用，Zeze会阻止违规调用。
+   ```
+   Zeze.Component.TimerAccount & Zeze.Component.TimerRole
+    　　scheduleOnline(… TimerHandle handle …) 
+    　　scheduleOnlineNamed(… TimerHandle handle …)
+    　　所有以”TimerHandle handle”形式提供回调的在线定时器都会进行限制。
+    Zeze.Util.EventDispatcher，用于Zeze.Game.Online & Zeze.Arch.Online
+        add(mode, handle) 调用者必须来自非热更模块。
+   ```
+
+2. 热更新模块必须使用接口。
+    ```
+    Zeze.Component.TimerAccount & Zeze.Component.TimerRole
+        scheduleOnlineHot(… Class<? extends TimerHandle> handleClass …)
+        scheduleOnlineNamedHot(… Class<? extends TimerHandle> handleClass …)
+    Zeze.Util.EventDispatcher，用于Zeze.Game.Online & Zeze.Arch.Online
+        addHot(mode, handleClass) 热更模块必须使用这个接口注册事件。
+    ```
+    
+
 
 ### 模块热更新启用配置
 * project hot=true 需要启用模块热更新时，首先必须配置这个，默认时false。
 * module hot=true 每个需要热更新的模块都需要单独配置，默认是false。
 
 ### 在接口中使用自定义Bean的方案（TODO）
-打包模块的时候，Bean打包到”非热更”模块；
-Bean的热更采用基于字节码热更（如，sprint-loaded）的方案；
-然后Bean就可以在接口中使用了。
+- 打包模块的时候，Bean打包到”非热更”模块；
+- Bean的热更采用基于字节码热更（如，sprint-loaded）的方案；
+- 然后Bean就可以在接口中使用了。
 
 ### 直接暴露数据表（TODO）
-在接口中使用自定义Bean实现前不能直接暴露数据表。
-暴露的表不能把引用保存下来，只能临时使用。
+- 在接口中使用自定义Bean实现前不能直接暴露数据表。
+- 暴露的表不能把引用保存下来，只能临时使用。

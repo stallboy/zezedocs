@@ -2,6 +2,7 @@
 layout: page
 title: Zeze集群
 parent: intro
+nav_order: 22
 ---
 
 * TOC

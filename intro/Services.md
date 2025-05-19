@@ -1,7 +1,8 @@
 ---
 layout: page
-title: 内建服务Services
+title: 内建服务
 parent: intro
+nav_order: 6
 ---
 
 * TOC

@@ -2,6 +2,7 @@
 layout: page
 title: 平台
 parent: intro
+nav_order: 9
 ---
 
 * TOC

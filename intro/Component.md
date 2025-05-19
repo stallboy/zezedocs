@@ -2,6 +2,7 @@
 layout: page
 title: 组件
 parent: intro
+nav_order: 21
 ---
 
 * TOC
@@ -12,7 +13,7 @@ parent: intro
 Component是Zeze内建模块；
 
 ## DelayRemove
-```java
+```
 remove(TableX<K, ?> table, K key)
 ```
 可以直接使用这个静态方法，或者通过Table.delayRemove使用。通过这里的remove删除
@@ -60,7 +61,7 @@ void register(String queue, int type, Predicate<Binary> task){}
 ```
 
 * RedoQueueServer初始化
-```java
+```
 MyApp.RedoQueueServer = new RedoQueueServer(zeze);
 MyApp.RedoQueueServer.Start();
 ```
@@ -79,7 +80,7 @@ String Schedule(cron); crontab风格定时器配置。
 ```
 
 ### Named Timer
-```java
+```
 boolean ScheduleNamed(string name, ...);
 // 全局Timer，每个名字只有一份实例。如果注册时改名字已经存在，名字存在会返回false。
 // 一般来说这个timer跑在注册它时所在的server实例上。但有可能被调度到其他server实例
@@ -87,7 +88,7 @@ boolean ScheduleNamed(string name, ...);
 ```
 
 ### Online Timer
-```java
+```
 String ScheduleOnline(userid, …);
 ```
 这些Timer和用户绑定，支持账号或者RoleId。仅在满足相关在线状态时才生效，具有一定
@@ -103,7 +104,7 @@ String ScheduleOnline(userid, …);
 5. 生命期和ModuleOnline.LocalData一致。
 
 ### Offline Timer
-```java
+```
 String ScheduleOffline(userid, …);
 ```
 这些Timer和用户绑定，支持账号或者RoleId。仅在满足相关在线状态时才生效，具有一定

@@ -2,6 +2,7 @@
 layout: page
 title: 性能
 parent: intro
+nav_order: 4
 ---
 
 * TOC

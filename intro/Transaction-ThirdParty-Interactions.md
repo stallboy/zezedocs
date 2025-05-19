@@ -2,6 +2,7 @@
 layout: page
 title: 事务和第三方系统交互问题
 parent: intro
+nav_order: 3
 ---
 
 * TOC

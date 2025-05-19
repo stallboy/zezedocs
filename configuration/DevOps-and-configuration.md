@@ -2,6 +2,7 @@
 layout: page
 title: 运维和配置
 parent: 配置
+nav_order: 1
 ---
 
 * TOC
@@ -18,15 +19,20 @@ Arch的linkd，server的配置文件的绝大部分内容都建议一致，实�
 比较大，需要对局部机器的配置进行调整除外。
 
 ## 分布式
-```
-Server配置如：<zeze ServerId="0" …>…</zeze>，其中ServerId时分布式每个服务实例的
-编号，必须唯一。这是server配置中唯一的每一台需要不同的配置。
-Linkd配置如：<zeze ServerId="-1" …>…</zeze>，linkd实际上不需要ServerId，它默认使
-用"ProviderIp:ProviderPort"作为自己名字。所以可以全部linkd实例的配置都是用-1。但有
-些应用可能想通过ServerId区分，这时建议-1，-2，-3，…方式进行配置。也有一些人采用
-正数，但需要注意不要和Server.ServerId重叠，也要注意以后server扩容以后是否达到保留
+
+Server配置如：
+```<zeze ServerId="0" …>…</zeze>```
+
+其中ServerId时分布式每个服务实例的编号，必须唯一。这是server配置中唯一的每一台需要不同的配置。
+
+Linkd配置如：
+```<zeze ServerId="-1" …>…</zeze>```
+
+linkd实际上不需要ServerId，它默认使用"ProviderIp:ProviderPort"作为自己名字。
+所以可以全部linkd实例的配置都是用-1。但有些应用可能想通过ServerId区分，这时建议-1，-2，-3，…方式进行配置。
+也有一些人采用正数，但需要注意不要和Server.ServerId重叠，也要注意以后server扩容以后是否达到保留
 的linkd的正数的Id。
-```
+
 
 ## 事务持久化
 ```xml
@@ -42,14 +48,17 @@ Linkd配置如：<zeze ServerId="-1" …>…</zeze>，linkd实际上不需要Ser
 
 ## CheckpointPeriod &amp; CheckpointMode
 Zeze对多数事务采用定时持久化的策略，CheckpointPeriod时定时器的间隔。
-CheckpointMode配置持久化模式，有Period，Immediately，Table三种模式。其中Period
-用于单机模式，就是单纯的定时持久化，在合适的CheckpointPeriod下效率很高。
-Immediately是所有的事务都立即持久化，效率最差，一般特殊情况下可能采用，不建议。
-Table是根据事务的关联性，以事务的关联集合为单位持久化，实际上也是定时的，和Period
-一样也使用CheckpointPeriod配置定时间隔持久化。分布式模式（启用了Global）下，必
-须使用Table持久化模式。事务的持久化还有一个特殊的模式，可以把部分表配成马上持久
-化，这个表相关的事务完成的时候就持久化，当事务返回就表示持久化已经完成了。这个参
-见后面TableConf.CheckpontWhenCommit。
+
+CheckpointMode配置持久化模式，有Period，Immediately，Table三种模式。
+
+- Period用于单机模式，就是单纯的定时持久化，在合适的CheckpointPeriod下效率很高。
+- Immediately是所有的事务都立即持久化，效率最差，一般特殊情况下可能采用，不建议。
+- Table是根据事务的关联性，以事务的关联集合为单位持久化，实际上也是定时的，和Period
+一样也使用CheckpointPeriod配置定时间隔持久化。
+
+分布式模式（启用了Global）下，必须使用Table持久化模式。事务的持久化还有一个特殊的模式，
+可以把部分表配成马上持久化，这个表相关的事务完成的时候就持久化，当事务返回就表示持久化已经完成了。
+这个参见后面TableConf.CheckpontWhenCommit。
 
 ## 持久化的线程模式
 CheckpointFlushMode和CheckpointModeTableFlushConcurrent配置持久化的线程模式。
@@ -64,7 +73,9 @@ CheckpointFlushMode有如下这些取值
 4. MultiThreadMerge
 多线程合并持久化。合并表示持久化时会合并多个事务为一个后端数据库事务，一
 般能提高效率。
+
 CheckpointModeTableFlushConcurrent 多线程持久化时的线程数量。
+
 checkpointModeTableFlushSetCount时合并时把几个zeze事务合并成一个后端数据库事务。
 
 ## 其他全局配置

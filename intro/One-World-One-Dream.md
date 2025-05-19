@@ -2,6 +2,7 @@
 layout: page
 title: 全球同服
 parent: intro
+nav_order: 7
 ---
 
 * TOC
