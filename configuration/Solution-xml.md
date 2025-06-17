@@ -35,8 +35,10 @@ Bean是Zeze的核心对象，用来定义数据结构。其中的variable描述�
 ## Table
 定义Key-Value存储表。
 ```xml
-<table name="tTrade" key="long" value="BTradesession" />
+<table name="tTrade" key="long" value="BTradesession" memory="false"/>
 ```
+memory配置为true，则表示是内存表，不会落地
+
 ## Protocol
 定义协议。
 ```xml

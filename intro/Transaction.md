@@ -96,7 +96,7 @@ public void VerifyAccountSum() {
     var account1 = tableAccount.get("tom");
     var account2 = talbeAccount.get("jack");
     int sum = account1.value + account2.value;
-    Transacton.WhileCommit(() => assert sum == 0);
+    // Transacton.WhileCommit(() => assert sum == 0);
     // 如果没有WhileCommit，即使在TransactionLevel为Serializable，
     // 这个断言也会失败。因为乐观锁执行的过程中是不加锁的。
 }
@@ -165,9 +165,10 @@ Collections形式的变量返回多个值，有两种处理方式：out集合能
 
 上面的事务重做导致的问题例子说了几个重做引起的问题。这里进一步特别说明一下，当在
 存储过程中读取修改自己的数据时，此时这些数据可以隐含的看作是存储过程的参数，根据
-上面in，out，ref的参数的建议形式进行处理即可。推荐的统一模式就是，1，随便读取自
-己的数据；2. 计算值使用存储过程内的本地局部变量存储；3. whileCommit修改自己的数
-据。读取修改自己定义的数据需要自定控制它的并发，因为存储过程是并发的。如果对自己
+上面in，out，ref的参数的建议形式进行处理即可。推荐的统一模式就是，
+1. 随便读取自己的数据； 
+2. 计算值使用存储过程内的本地局部变量存储； 
+3. whileCommit修改自己的数据。读取修改自己定义的数据需要自定控制它的并发，因为存储过程是并发的。如果对自己
 的数据的并发访问很复杂，最终可能会实现出另一套zeze的并发控制，所以一般情况下，
 不自己定义的数据，都定义成zeze的数据，特殊情况下，并发控制比较简单，此时可以受
 限的定义一些自己数据。建议让具有很高多线程开发经验，并且熟悉zeze事务的开发人员
