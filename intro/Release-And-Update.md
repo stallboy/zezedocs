@@ -46,7 +46,7 @@ Instrumentation的文档。涉及更新多台服务器时，一般也是一台�
 	 * @param uploadDir   上传文件的目录
 	 * @param fileVarName 上传文件名查询Key，
 	 *                    比如直接上传的url:/upload?fileVarName=xxx
-	 *                    或者表单中<input type="file" name="fileVarName" multiple>
+	 *                    或者表单中&lt;input type="file" name="fileVarName" multiple&gt;
 	 */
 	public ReloadClassServer(@NotNull AppBase app, @NotNull String urlPath, @NotNull String uploadDir, @NotNull String fileVarName)
 	// 这个服务依赖App.getHttpServer()，需要App定义并初始化HttpServer。
@@ -81,7 +81,7 @@ curl -X POST 'http://.../reloadClass' --header 'Content-Type: multipart/form-dat
 	 * @param uploadDir   上传文件的目录
 	 * @param fileVarName 上传文件名查询Key，
 	 *                    比如直接上传的url:/upload?fileVarName=xxx
-	 *                    或者表单中<input type="file" name="fileVarName" multiple>
+	 *                    或者表单中&lt;input type="file" name="fileVarName" multiple&gt;
 	 */
 	public RunClassServer(@NotNull AppBase app, @NotNull String urlPath, @NotNull String uploadDir, @NotNull String fileVarName)
     ```
