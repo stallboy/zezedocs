@@ -69,7 +69,7 @@ Instrumentation的文档。涉及更新多台服务器时，一般也是一台�
 
 上传可以使用curl命令：
 
-```
+```bash
 curl -X POST 'http://.../reloadClass' --header 'Content-Type: multipart/form-data' --form "file=@本地上传的文件路径;filename=服务器保存的文件名"
 ```
 
