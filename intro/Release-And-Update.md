@@ -37,7 +37,8 @@ Instrumentation的文档。涉及更新多台服务器时，一般也是一台�
 ### Zeze.Services.ReloadClassServer
 
 1. 构造服务
-    ```
+
+    ```java
 	/**
 	 * 构造ReloadClassServer
 	 *
@@ -54,10 +55,12 @@ Instrumentation的文档。涉及更新多台服务器时，一般也是一台�
 
 2. 在App里面定义变量：`private ReloadClassServer reloadClassServer;`
 3. 构造并启动
-    ```
+
+    ```java
     reloadClassServer = new ReloadClassServer(this, "/reloadClass", "upload", "filename");
     reloadClassServer.start();
     ```
+
 4. uploadDir是存放上传zip文件的目录，程序启动会自动装载（再次ReloadClass以保持最新）。
 5. ReloadClass本身没有版本管理支持，除了把上传的zip保存并在重启是再次Reload，没有其他支持了。
 
@@ -65,6 +68,7 @@ Instrumentation的文档。涉及更新多台服务器时，一般也是一台�
 全部打包成zip上传。程序更新再次发布以后，清空本地目录，并且删除服务器的uploadDir下的zip文件。
 
 上传可以使用curl命令：
+
 ```
 curl -X POST 'http://.../reloadClass' --header 'Content-Type: multipart/form-data' --form "file=@本地上传的文件路径;filename=服务器保存的文件名"
 ```
@@ -72,7 +76,8 @@ curl -X POST 'http://.../reloadClass' --header 'Content-Type: multipart/form-dat
 ### Zeze.Services.RunClassServer
 
 1. 构造服务
-    ```
+
+    ```java
 	/**
 	 * 构造RunClassServer
 	 *
@@ -88,9 +93,11 @@ curl -X POST 'http://.../reloadClass' --header 'Content-Type: multipart/form-dat
 
 2. 在App里面定义变量：`private RunClassServer runClassServer;`
 3. 构造初始化
-    ```
+
+    ```java
     runClassServer = new RunClassServer(this, "/runClass", "clazz", "filename");
     ```
+
 4. uploadDir是存放上传的class的目录，重名的class文件会覆盖。重启不会再次执行目录下的class。
 5. RunClass每次上传一个class，每次执行一次。
 
