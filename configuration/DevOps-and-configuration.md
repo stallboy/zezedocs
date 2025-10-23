@@ -578,11 +578,6 @@ ServiceConf里面的网络配置。注意：由于java版没有实现异步Dns�
 
 Dh密钥交换算法里面Group的配置。强烈不建议修改。
 
-* SecureIp
-
-当服务器（Acceptor）运行在防火墙后面是，把客户端看到的外部Ip配置到这个
-变量里面。
-
 * CompressS2c="0"
 
 服务器到客户端是否启用压缩。0表示不压缩。1表示使用mppc算法压缩。2表
@@ -594,7 +589,7 @@ Dh密钥交换算法里面Group的配置。强烈不建议修改。
 
 * EncryptType="0"
 
-加密类型选择。0表示不加密。1表示Aes加密。
+加密类型选择。0表示不加密。1表示Aes加密。2表示Aes加密且不用secureIp。3表示RsaAes加密。
 
 * KeepCheckPeriod="0"
 
