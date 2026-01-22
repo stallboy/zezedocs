@@ -35,6 +35,7 @@ nav_order: 34
 - **需求**：游戏支持多个客户端同时在线（PC端、移动端、网页端），或者同一账号使用不同的应用（游戏App、独立聊天App、社区App），每个客户端需要独立的在线状态管理
 - **为什么使用**：支持创建多个OnlineSet，每个OnlineSet独立管理不同客户端的在线状态，实现跨客户端通信和状态同步
 - **实现方式**：
+
 ```java
 // 创建多个OnlineSet对应不同的客户端平台
 provider.create(app, "PC", "Mobile", "Web", "ChatApp");
@@ -65,6 +66,7 @@ provider.create(app, "PC", "Mobile", "Web", "ChatApp");
 - **实现方式**：通过OnlineShared查询玩家全局状态，实现跨服功能
 
 #### 1.3 核心成员
+
 ```java
 protected Online online;  // 默认的Online实例
 private ProviderLoadWithOnline load;  // 负载监控
@@ -87,6 +89,7 @@ protected final HashMap<String, Online> onlineSetMap;  // 所有Online集合
 - `ProcessLinkBroken(LinkBroken p)`: 处理连接断开事件
 
 #### 1.4 使用方式
+
 ```java
 // 1. 继承ProviderWithOnline
 public class GameProvider extends ProviderWithOnline {
@@ -124,6 +127,7 @@ Online namedOnline = provider.getOnline("OnlineSetName1");
 - **需求**：玩家登录游戏时需要初始化数据，登出时需要保存数据并清理资源
 - **为什么使用**：提供完整的登录登出流程管理，自动处理会话状态、版本控制、断线重连
 - **实现方式**：
+
 ```java
 // 注册登录事件
 online.getLoginEvents().add((sender, arg) -> {
@@ -152,6 +156,7 @@ online.getLogoutEvents().add((sender, arg) -> {
 - **需求**：玩家网络波动导致短暂断线，需要自动恢复会话，避免数据丢失和游戏体验中断
 - **为什么使用**：提供延迟登出机制，断线后等待一段时间才真正登出，期间重连可恢复会话
 - **实现方式**：
+
 ```java
 // 配置延迟登出时间（如30秒）
 // 在Zeze配置中：OnlineLogoutDelay=30000
@@ -180,6 +185,7 @@ online.getReloginEvents().add((sender, arg) -> {
 - **需求**：需要向玩家发送各种游戏通知、奖励、更新等
 - **为什么使用**：提供多种发送方式（单发、群发、广播），支持事务中发送，支持可靠通知
 - **实现方式**：
+
 ```java
 // 场景3.1：发送奖励通知（普通发送）
 public void giveReward(long roleId, Reward reward) {
@@ -218,6 +224,7 @@ public void sendToGuildMembers(long guildId, GuildMessage msg) {
 - **需求**：某些数据只需要在单个服务器进程中使用，不需要全局共享，用于提高性能
 - **为什么使用**：提供Local数据存储，仅本进程可见，减少网络开销和数据库压力
 - **实现方式**：
+
 ```java
 // 场景4.1：缓存战斗数据（仅战斗服务器需要）
 public void startBattle(long roleId, BattleInstance battle) {
@@ -255,6 +262,7 @@ online.getLocalRemoveEvents().add((sender, arg) -> {
 - **需求**：需要查询或操作在另一个服务器上的玩家数据
 - **为什么使用**：提供Transmit机制，自动找到目标玩家所在服务器并转发请求
 - **实现方式**：
+
 ```java
 // 场景5.1：跨服好友查询
 public class FriendService {
@@ -294,6 +302,7 @@ public void sendMail(long sender, long targetRoleId, Mail mail) {
 - **需求**：玩家可能同时在多个客户端登录（PC端、移动端、网页端），或者在同一账号下使用不同的应用（游戏App、聊天App、社区App），需要独立的在线状态管理
 - **为什么使用**：支持创建多个OnlineSet，每个OnlineSet独立管理不同客户端的在线状态，互不干扰
 - **实现方式**：
+
 ```java
 // 创建多个OnlineSet对应不同的客户端
 provider.create(app, "PC", "Mobile", "Web", "ChatApp");
@@ -466,6 +475,7 @@ public class MultiDeviceKick {
 - **需求**：游戏运行时需要热更新Bean类，需要迁移现有数据到新的Bean结构
 - **为什么使用**：提供热更新支持，自动迁移Local数据中的Bean
 - **实现方式**：
+
 ```java
 // 注册自定义Bean类型
 Online.register(PlayerDataV1.class);
@@ -491,6 +501,7 @@ online.upgrade(oldBean -> {
 - **需求**：根据服务器在线人数和负载，动态分配玩家到不同服务器
 - **为什么使用**：提供负载查询接口，配合ProviderLoad实现负载均衡
 - **实现方式**：
+
 ```java
 // 选择负载最低的服务器
 public int selectBestServer() {
@@ -534,6 +545,7 @@ Online系统使用5个核心数据表来管理玩家的在线状态和数据，�
 - **性能优化**：不需要跨进程同步，访问速度快
 
 **存储内容**
+
 ```java
 public class BOnline extends Bean {
     private int serverId;                    // 当前所在服务器ID
@@ -547,6 +559,7 @@ public class BOnline extends Bean {
 **使用场景**
 
 **场景1：查询角色所在服务器**
+
 ```java
 // 查询角色在哪个服务器上
 public int locateRoleServer(long roleId) {
@@ -561,6 +574,7 @@ public int locateRoleServer(long roleId) {
 ```
 
 **场景2：可靠通知管理**
+
 ```java
 // 添加可靠通知标记（确保重要通知送达）
 online.addReliableNotifyMark(roleId, "ImportantAnnouncement");
@@ -571,6 +585,7 @@ online.sendReliableNotify(roleId, "ImportantAnnouncement",
 ```
 
 **场景3：跨服务器请求定位**
+
 ```java
 // 发送跨服请求前，先定位目标角色
 public void sendCrossServerRequest(long requester, long target) {
@@ -612,6 +627,7 @@ public void sendCrossServerRequest(long requester, long target) {
 - **跨服协作**：多个服务器需要协同管理同一个角色
 
 **存储内容**
+
 ```java
 public class BOnlineShared extends Bean {
     private String account;           // 绑定的账号
@@ -631,6 +647,7 @@ public class BLink extends Bean {
 **使用场景**
 
 **场景1：全局在线状态查询**
+
 ```java
 // 查询角色是否在线（全局）
 public boolean isOnline(long roleId) {
@@ -643,6 +660,7 @@ public boolean isOnline(long roleId) {
 ```
 
 **场景2：防止重复登录**
+
 ```java
 // Login流程中检查是否已登录
 public long ProcessLoginRequest(Login rpc) {
@@ -665,6 +683,7 @@ public long ProcessLoginRequest(Login rpc) {
 ```
 
 **场景3：版本控制防止并发冲突**
+
 ```java
 // Local数据带版本号，过期自动删除
 public void processLoginVersion(long roleId) {
@@ -680,6 +699,7 @@ public void processLoginVersion(long roleId) {
 ```
 
 **场景4：断线重连恢复**
+
 ```java
 // ReLogin时检查版本号，确保恢复正确的会话
 public long ProcessReLoginRequest(ReLogin rpc) {
@@ -717,6 +737,7 @@ public long ProcessReLoginRequest(ReLogin rpc) {
 - **超时清理**：长时间不活跃的数据自动删除
 
 **存储内容**
+
 ```java
 public class BLocal extends Bean {
     private long loginVersion;        // 登录版本号（与OnlineShared一致）
@@ -732,6 +753,7 @@ public class BAny extends Bean {
 **使用场景**
 
 **场景1：战斗数据缓存**
+
 ```java
 // 开始战斗，保存战斗数据到本地（快）
 public void startBattle(long roleId, BattleInstance battle) {
@@ -747,6 +769,7 @@ public void endBattle(long roleId) {
 ```
 
 **场景2：临时会话数据**
+
 ```java
 // 开始交易，保存交易会话
 public void startTrade(long roleId1, long roleId2, TradeSession session) {
@@ -765,6 +788,7 @@ online.getLocalRemoveEvents().add((sender, arg) -> {
 ```
 
 **场景3：模块加载缓存**
+
 ```java
 // 热更新模块缓存
 public class GameModule {
@@ -784,6 +808,7 @@ public class GameModule {
 ```
 
 **场景4：超时自动清理**
+
 ```java
 // 配置超时时间（如10分钟不活跃就清理）
 online.setLocalActiveTimeout(600 * 1000);
@@ -817,6 +842,7 @@ online.setLocalActiveTimeIfPresent(roleId);
 **使用场景**
 
 **场景1：定时保存数据**
+
 ```java
 // 每5分钟自动保存角色数据
 public void startAutoSave(long roleId) {
@@ -829,6 +855,7 @@ public void startAutoSave(long roleId) {
 ```
 
 **场景2：定时刷新状态**
+
 ```java
 // 每1秒刷新战斗状态
 public void startBattleTick(long roleId) {
@@ -843,6 +870,7 @@ public void startBattleTick(long roleId) {
 ```
 
 **场景3：定时检查**
+
 ```java
 // 每30秒检查玩家是否在安全区
 public void startSafetyZoneCheck(long roleId) {
@@ -878,6 +906,7 @@ public void startSafetyZoneCheck(long roleId) {
 **使用场景**
 
 **场景1：离线经验增长**
+
 ```java
 // 玩家离线后，每10分钟获得离线经验
 public void startOfflineExp(long roleId) {
@@ -906,6 +935,7 @@ public void onOfflineExpTimer(long roleId) {
 ```
 
 **场景2：建筑升级**
+
 ```java
 // 玩家开始建造建筑，需要1小时
 public void startBuilding(long roleId, int buildingId) {
@@ -933,6 +963,7 @@ public void onBuildingComplete(long roleId) {
 ```
 
 **场景3：邮件/通知延迟发送**
+
 ```java
 // 1小时后发送提醒邮件
 public void scheduleReminderMail(long roleId, String content) {
@@ -964,6 +995,7 @@ public void scheduleReminderMail(long roleId, String content) {
 | **_tRoleOfflineTimers** | 全局 | 离线定时任务触发前 | 离线定时任务（离线经验、建筑升级） | 是（跟随角色） |
 
 **状态枚举**
+
 ```java
 eOffline = 0;     // 离线
 eLogined = 1;     // 已登录
@@ -1007,6 +1039,7 @@ void removeLocalBean(long roleId, String key);
 ##### 2.3.3 协议发送接口
 
 **单发协议**
+
 ```java
 // 发送给单个角色
 void send(long roleId, Protocol<?> p);
@@ -1018,6 +1051,7 @@ TaskCompletionSource<R> sendOnlineRpcForWait(long roleId, Rpc<A, R> rpc);
 ```
 
 **群发协议**
+
 ```java
 // 发送给多个角色
 void send(Collection<Long> roleIds, Protocol<?> p);
@@ -1029,6 +1063,7 @@ void sendAllOnlines(Collection<Long> roleIds, Protocol<?> p);
 ```
 
 **可靠通知**（保证送达，需要确认）
+
 ```java
 void addReliableNotifyMark(long roleId, String listenerName);
 void removeReliableNotifyMark(long roleId, String listenerName);
@@ -1037,6 +1072,7 @@ void sendReliableNotifyWhileCommit(long roleId, String listenerName, Protocol<?>
 ```
 
 **广播协议**（发送给所有连接的Link）
+
 ```java
 int broadcast(Protocol<?> p);
 int broadcast(Protocol<?> p, int timeout);
@@ -1044,12 +1080,14 @@ int broadcast(Protocol<?> p, boolean onlySameVersion);
 ```
 
 **直接发送**（通过LinkName+LinkSid发送，不经过Online查询）
+
 ```java
 boolean send(String linkName, long linkSid, Protocol<?> p);
 boolean send(Long roleId, String linkName, long linkSid, Protocol<?> p);
 ```
 
 **事务相关发送**
+
 ```java
 void sendWhileCommit(long roleId, Protocol<?> p);           // 事务提交时发送
 void sendWhileRollback(long roleId, Protocol<?> p);         // 事务回滚时发送
@@ -1091,6 +1129,7 @@ void transmitWhileRollback(long sender, String actionName, long roleId);
 ```
 
 TransmitAction接口：
+
 ```java
 public interface TransmitAction {
     long call(long sender, long target, Binary parameter) throws Exception;
@@ -1098,11 +1137,13 @@ public interface TransmitAction {
 ```
 
 ##### 2.3.6 踢人功能
+
 ```java
 void kick(long roleId, int code, String desc);
 ```
 
 ##### 2.3.7 OnlineSet管理
+
 ```java
 String getOnlineSetName();
 Online getOnline(String name);
